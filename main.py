@@ -16,7 +16,7 @@ from src.risk_manager import calculate_position_size
 # ===================================================
 # ฟังก์ชันเช็กลิมิตออเดอร์ (สูงสุด 8 ไม้)
 # ===================================================
-def check_order_limit(symbol: str, max_orders: int = 8) -> bool:
+def check_order_limit(symbol: str, max_orders: int = 20) -> bool:
     positions = mt5.positions_get(symbol=symbol)
     if positions is None:
         print(f"❌ ดึงข้อมูลออเดอร์ไม่สำเร็จ (Error: {mt5.last_error()})")
@@ -35,7 +35,7 @@ def main():
     # -----------------------------------
     SYMBOL = "XAUUSD"
     ACCOUNT_BALANCE = 1000.00
-    RISK_PCT = 0.05
+    RISK_PCT = 0.1
 
     end_date = datetime.today().strftime('%Y-%m-%d')
     start_date = (datetime.today() - timedelta(days=365)).strftime('%Y-%m-%d')
@@ -95,11 +95,13 @@ def main():
     symbol_point = symbol_info.point
 
     # ✅ ตั้งระยะ SL/TP เป็น Point (ปรับได้ตามต้องการ)
-    sl_points = 150    # SL = 350 points (~3.50 USD สำหรับทอง)
-    tp_points = 400   # TP = 1000 points (~10.00 USD สำหรับทอง)
+    atr = df['atr_7'].iloc[-1]
+    sl_dist = atr * 2.0
+    tp_dist = atr * 3.0
 
-    sl_dist = sl_points * symbol_point
-    tp_dist = tp_points * symbol_point
+# กันค่าผิดปกติช่วง news
+    sl_dist = max(min(sl_dist, 2.00), 0.80)   # $0.80–$2.00
+    tp_dist = max(min(tp_dist, 5.00), 1.50)   # $1.50–$5.00
 
     print(f"\n[4/4] 🎯 แผนการเทรดวันนี้ (Action Plan)")
     print(f"   - Symbol Point: {symbol_point}")
@@ -108,8 +110,8 @@ def main():
     # -----------------------------------
     # 6. เช็กลิมิตออเดอร์ก่อนเปิดไม้ใหม่
     # -----------------------------------
-    if check_order_limit(SYMBOL, max_orders=8):
-        print("⚠️ ออเดอร์เต็มลิมิต 8 ไม้แล้ว รอปิดก่อนครับ")
+    if check_order_limit(SYMBOL, max_orders=20):
+        print("⚠️ ออเดอร์เต็มลิมิต 20 ไม้แล้ว รอปิดก่อนครับ")
         return
 
     # -----------------------------------
@@ -130,7 +132,7 @@ def main():
         execute_mt5_trade(
             symbol=SYMBOL,
             order_type=mt5.ORDER_TYPE_BUY,
-            volume=0.05,
+            volume=0.1,
             price=current_price,
             sl=sl_price,
             tp=tp_price
@@ -147,7 +149,7 @@ def main():
         execute_mt5_trade(
             symbol=SYMBOL,
             order_type=mt5.ORDER_TYPE_SELL,
-            volume=0.05,
+            volume=0.1,
             price=current_price_bid,
             sl=sl_price,
             tp=tp_price
