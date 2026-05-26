@@ -101,7 +101,7 @@ def main():
 
 # กันค่าผิดปกติช่วง news
     sl_dist = max(min(sl_dist, 2.00), 0.80)   # $0.80–$2.00
-    tp_dist = max(min(tp_dist, 5.00), 1.50)   # $1.50–$5.00
+    tp_dist = max(min(tp_dist, 3.00), 1.50)   # $1.50–$5.00
 
     print(f"\n[4/4] 🎯 แผนการเทรดวันนี้ (Action Plan)")
     print(f"   - Symbol Point: {symbol_point}")
